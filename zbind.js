@@ -1,24 +1,17 @@
 class Observe {
+    source() { return this.__state; }
+    get isObserved() { return true; }
+    static Wrap(val, props) { return new Observe(val, props)};
+
     constructor(val, props) {
         this.__state = val;
         this.__props = props;
         this.__propertyChangeTriggers = {};
         this.__propertyEqualsTriggers = {};
         this.__stateChangedTriggers = [];
-        this.__applier = function (target, property, observer) {
-            if (typeof observer === 'function') {
-                return function (v) {
-                    if (target[property] === v) return;
-                    target[property] = v;
-                    this.__observer(target, property, v);
-                };
-            }
-            else {
-                console.log('[zbind.__applier] observer is not a function');
-            }
-        };
-        this.__getter = function (target, property) { return function () { return target[property]; }; };
         this.__observer = function (target, property, value) {
+            if (target[property] === value) return;
+            target[property] = value;
             if (property in this.__propertyChangeTriggers) {
                 this.__propertyChangeTriggers[property].forEach(function (item) {
                     if (typeof item === 'function') {
@@ -67,17 +60,17 @@ class Observe {
                 });
             }
         };
-        for (var p in val) {
+        for (const p in val) {
             Object.defineProperty(this, p, {
-                get: this.__getter(this.__state, p),
-                set: this.__applier(this.__state, p, this.__observer)
+                get: () => this.__state[p],
+                set: (v) => this.__observer(this.__state, p, v)
             });
         }
     }
     bind(other, otherProperty, selfProperty) {
         if (!selfProperty && !otherProperty
             && other && other.isObserved === true) {
-            for (var pn in this.__state) {
+            for (const pn in this.__state) {
                 other.bindReverse(this, pn, pn);
             }
         }
@@ -101,7 +94,7 @@ class Observe {
     bindTwoWay(other, otherProperty, selfProperty) {
         if (!otherProperty && !selfProperty) {
             if (other && other.isObserved === true) {
-                for (var pn in this.__state) {
+                for (const pn in this.__state) {
                     other.bindReverse(this, pn, pn);
                 }
                 other.bind(this);
@@ -149,12 +142,5 @@ class Observe {
         else{
             console.error('[zbind.__observer.propertyEqual] ' + JSON.stringify(callback) + ': is not a function');
         }
-    }
-
-    source() { return this.__state; }
-    get isObserved() { return true; }
-
-    static Wrap(val, props) {
-        return new Observe(val, props);
     }
 }
