@@ -1,0 +1,45 @@
+<html>
+<body>
+<table>
+  <tr>
+    <td colspan=2>
+      <span id="result" />
+      <td>
+  </tr>
+  <tr>
+    <td>
+      <input type="text" id="first">
+    </td>
+    <td>
+      <input type="text" id="second">
+    </td>
+  </tr>  
+</table>
+
+<script>
+  function recalc(v){
+  var left=document.querySelector('#first').value;
+  var right=document.querySelector('#second').value;  
+  let a=0;
+  let b=0;
+  try{a = parseInt(left, 10);}catch{a = 0;}
+  try{b = parseInt(right, 10);}catch{b = 0;}
+  document.querySelector('#result').textContent = MathFuncs.Calc(a, b);
+};
+
+function onTextChange(item, handler){
+  const typeHandler = function(e) { handler(e.target.value); }
+  item.addEventListener('input', typeHandler) // register for oninput
+  item.addEventListener('propertychange', typeHandler) // for IE8
+};
+
+onTextChange(document.querySelector('#first'), function(v) { recalc(v); });
+onTextChange(document.querySelector('#second'), function(v){ recalc(v); });
+
+class MathFuncs 
+{
+  static Calc(a, b) { return a+b;};
+}
+</script>
+</body>
+</html>
