@@ -6,7 +6,6 @@
     <style>
         table {
             border: 1px solid #ccc;
-            border-collapse: collapse;
             margin: 0;
             padding: 0;
             width: 400px;
@@ -39,34 +38,34 @@
         <tr>
             <td>
                 <b>Sum</b>
-            <td>
+            </td>
             <td>
                 <span id="sum">0</span>
-            <td>
+            </td>
         </tr>
         <tr>
             <td>
                 <b>Sub</b>
-            <td>
+            </td>
             <td>
                 <span id="sub">0</span>
-            <td>
+            </td>
         </tr>
         <tr>
             <td>
                 <b>Mul</b>
-            <td>
+            </td>
             <td>
                 <span id="mul">0</span>
-            <td>
+            </td>
         </tr>
         <tr>
             <td>
                 <b>Div</b>
-            <td>
+            </td>
             <td>
                 <span id="div">0</span>
-            <td>
+            </td>
         </tr>
     </table>
     <div>
@@ -87,7 +86,7 @@
             div: 0
         });
 
-        x.stateChanged((s, p) => {
+        function recalc(s, p, v, props) {
             x.sum = s.left + s.right;
             x.sub = s.left - s.right;
             x.mul = s.left * s.right;
@@ -96,8 +95,10 @@
             } catch {
                 x.div = NaN;
             }
-        });
+        }
 
+        x.propertyChanged("left", recalc);
+        x.propertyChanged("right", recalc);
         UIBinder.BindInputTextToOjbect(document.querySelector('#first'), x, "left", convertTextToNum);
         UIBinder.BindInputTextToOjbect(document.querySelector('#second'), x, "right", convertTextToNum);
         UIBinder.BindObjectToElement(document.querySelector('#sum'), x, "sum");
