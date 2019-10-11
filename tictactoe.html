@@ -1,0 +1,142 @@
+<html>
+
+<head>
+    <title>Tic Tac Toe</title>
+    <script src="zbind.js"></script>
+    <style>
+        .BoardRow:after {
+            clear: both;
+            content: "";
+            display: table;
+        }
+
+        .BoardCell {
+            background: #fff;
+            border: 1px solid #999;
+            float: left;
+            font-size: 24px;
+            font-weight: bold;
+            line-height: 34px;
+            height: 34px;
+            margin-right: -1px;
+            margin-top: -1px;
+            padding: 0;
+            text-align: center;
+            width: 34px;
+        }
+
+    </style>
+</head>
+
+<body>
+    <h1 id='Status'></h1>
+    <div id='Board'>
+        <div class='BoardRow'>
+            <div class='BoardCell'></div>
+            <div class='BoardCell'></div>
+            <div class='BoardCell'></div>
+        </div>
+        <div class='BoardRow'>
+            <div class='BoardCell'></div>
+            <div class='BoardCell'></div>
+            <div class='BoardCell'></div>
+        </div>
+        <div class='BoardRow'>
+            <div class='BoardCell'></div>
+            <div class='BoardCell'></div>
+            <div class='BoardCell'></div>
+        </div>
+    </div>
+
+    <script>
+        function calculateWinner(state) {
+            const lines = [
+                [0, 1, 2],
+                [3, 4, 5],
+                [6, 7, 8],
+                [0, 3, 6],
+                [1, 4, 7],
+                [2, 5, 8],
+                [0, 4, 8],
+                [2, 4, 6],
+            ];
+            for (let i = 0; i < lines.length; i++) {
+                const [a, b, c] = lines[i];
+                if (state[a] &&
+                    state[a] === state[b] &&
+                    state[a] === state[c]) {
+                    return state[a];
+                }
+            }
+            return null;
+        }
+
+        function isStandoff(state) {
+            for (let i = 0; i < state.length; i++) {
+                if (state[i] === null) return false;
+            }
+            return true;
+        }
+
+        class Board {
+            constructor() {
+                this.state = new Observe(new Array(9).fill(null), this);
+                this.gameState = {
+                    currentPlayer: 'X',
+                    standoff: false,
+                    end: false
+                };
+
+                this.state.stateChanged(function(state, props) {
+                    if (calculateWinner(state)) {
+                        props.gameState.end = true;
+                    } else if (isStandoff(state)) {
+                        props.gameState.end = true;
+                        props.gameState.standoff = true;
+                    }
+                });
+            }
+        }
+
+        var board = new Board();
+
+        function twoWayBinding(index, div, board) {
+            div.onclick = function() {
+                if (board.gameState.end) {
+                    return;
+                }
+                var currentPlayer = board.gameState.currentPlayer;
+                if (!board.state[index]) {
+                    board.state[index] = currentPlayer;
+                    board.gameState.currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+                    div.textContent = board.state[index];
+                }
+                if (board.gameState.end) {
+                    if (board.gameState.standoff) {
+                        document.getElementById("Status").textContent = "Standoff!";
+                    } else {
+                        document.getElementById("Status").textContent = currentPlayer + " win!";
+                    }
+                } else {
+                    document.getElementById("Status").textContent = "Wait action from: " + board.gameState.currentPlayer;
+                }
+            };
+        }
+
+        let index = 0;
+        let rows = document.getElementById("Board").children;
+        for (let i = 0; i < rows.length; i++) {
+            let row = rows[i];
+            let cells = row.children;
+            for (let j = 0; j < cells.length; j++) {
+                twoWayBinding(index, cells[j], board);
+                index++;
+            }
+        }
+
+        document.getElementById("Status").textContent = "Wait action from: X";
+
+    </script>
+</body>
+
+</html>
