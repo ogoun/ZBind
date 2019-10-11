@@ -1,2 +1,2 @@
 # ZBind
-js binder
+vanilla js binder
