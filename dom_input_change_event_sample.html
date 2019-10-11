@@ -3,26 +3,76 @@
 <head>
     <title>Sample</title>
     <script src="zbind.js"></script>
-</head>
+    <style>
+        table {
+            border: 1px solid #ccc;
+            border-collapse: collapse;
+            margin: 0;
+            padding: 0;
+            width: 400px;
+        }
 
+        table tr {
+            background-color: #f8f8f8;
+            border: 1px solid #ddd;
+            padding: .35em;
+        }
+
+        table td {
+            width: 50%;
+            padding: .625em;
+            text-align: left;
+            font-size: .85em;
+            letter-spacing: .1em;
+            text-transform: uppercase;
+        }
+
+        input {
+            width: 198px;
+        }
+
+    </style>
+</head>
 
 <body>
     <table>
         <tr>
-            <td colspan=2>
-                <span id="result" />
+            <td>
+                <b>Sum</b>
+            <td>
+            <td>
+                <span id="sum">0</span>
             <td>
         </tr>
         <tr>
             <td>
-                <input type="text" id="first">
-            </td>
+                <b>Sub</b>
             <td>
-                <input type="text" id="second">
-            </td>
+            <td>
+                <span id="sub">0</span>
+            <td>
+        </tr>
+        <tr>
+            <td>
+                <b>Mul</b>
+            <td>
+            <td>
+                <span id="mul">0</span>
+            <td>
+        </tr>
+        <tr>
+            <td>
+                <b>Div</b>
+            <td>
+            <td>
+                <span id="div">0</span>
+            <td>
         </tr>
     </table>
-
+    <div>
+        <input type="text" id="first" />
+        <input type="text" id="second" />
+    </div>
     <script>
         function convertTextToNum(s) {
             return parseInt(s) || 0;
@@ -31,22 +81,29 @@
         var x = Observe.Wrap({
             left: 0,
             right: 0,
-            sum: 0
+            sum: 0,
+            sub: 0,
+            mul: 0,
+            div: 0
         });
 
         x.stateChanged((s, p) => {
-            x.sum = MathFuncs.Calc(s.left, s.right);
+            x.sum = s.left + s.right;
+            x.sub = s.left - s.right;
+            x.mul = s.left * s.right;
+            try {
+                x.div = s.left / s.right;
+            } catch {
+                x.div = NaN;
+            }
         });
 
         UIBinder.BindInputTextToOjbect(document.querySelector('#first'), x, "left", convertTextToNum);
         UIBinder.BindInputTextToOjbect(document.querySelector('#second'), x, "right", convertTextToNum);
-        UIBinder.BindObjectToElement(document.querySelector('#result'), x, "sum");
-
-        class MathFuncs {
-            static Calc(a, b) {
-                return a + b;
-            };
-        }
+        UIBinder.BindObjectToElement(document.querySelector('#sum'), x, "sum");
+        UIBinder.BindObjectToElement(document.querySelector('#sub'), x, "sub");
+        UIBinder.BindObjectToElement(document.querySelector('#mul'), x, "mul");
+        UIBinder.BindObjectToElement(document.querySelector('#div'), x, "div");
 
     </script>
 </body>
