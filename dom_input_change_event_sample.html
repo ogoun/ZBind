@@ -1,45 +1,54 @@
 <html>
+
+<head>
+    <title>Sample</title>
+    <script src="zbind.js"></script>
+</head>
+
+
 <body>
-<table>
-  <tr>
-    <td colspan=2>
-      <span id="result" />
-      <td>
-  </tr>
-  <tr>
-    <td>
-      <input type="text" id="first">
-    </td>
-    <td>
-      <input type="text" id="second">
-    </td>
-  </tr>  
-</table>
+    <table>
+        <tr>
+            <td colspan=2>
+                <span id="result" />
+            <td>
+        </tr>
+        <tr>
+            <td>
+                <input type="text" id="first">
+            </td>
+            <td>
+                <input type="text" id="second">
+            </td>
+        </tr>
+    </table>
 
-<script>
-  function recalc(v){
-  var left=document.querySelector('#first').value;
-  var right=document.querySelector('#second').value;  
-  let a=0;
-  let b=0;
-  try{a = parseInt(left, 10);}catch{a = 0;}
-  try{b = parseInt(right, 10);}catch{b = 0;}
-  document.querySelector('#result').textContent = MathFuncs.Calc(a, b);
-};
+    <script>
+        function convertTextToNum(s) {
+            return parseInt(s) || 0;
+        }
 
-function onTextChange(item, handler){
-  const typeHandler = function(e) { handler(e.target.value); }
-  item.addEventListener('input', typeHandler) // register for oninput
-  item.addEventListener('propertychange', typeHandler) // for IE8
-};
+        var x = Observe.Wrap({
+            left: 0,
+            right: 0,
+            sum: 0
+        });
 
-onTextChange(document.querySelector('#first'), function(v) { recalc(v); });
-onTextChange(document.querySelector('#second'), function(v){ recalc(v); });
+        x.stateChanged((s, p) => {
+            x.sum = MathFuncs.Calc(s.left, s.right);
+        });
 
-class MathFuncs 
-{
-  static Calc(a, b) { return a+b;};
-}
-</script>
+        UIBinder.BindInputTextToOjbect(document.querySelector('#first'), x, "left", convertTextToNum);
+        UIBinder.BindInputTextToOjbect(document.querySelector('#second'), x, "right", convertTextToNum);
+        UIBinder.BindObjectToElement(document.querySelector('#result'), x, "sum");
+
+        class MathFuncs {
+            static Calc(a, b) {
+                return a + b;
+            };
+        }
+
+    </script>
 </body>
+
 </html>

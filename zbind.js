@@ -1,7 +1,13 @@
 class Observe {
-    source() { return this.__state; }
-    get isObserved() { return true; }
-    static Wrap(val, props) { return new Observe(val, props)};
+    source() {
+        return this.__state;
+    }
+    get isObserved() {
+        return true;
+    }
+    static Wrap(val, props) {
+        return new Observe(val, props)
+    };
 
     constructor(val, props) {
         this.__state = val;
@@ -9,52 +15,49 @@ class Observe {
         this.__propertyChangeTriggers = {};
         this.__propertyEqualsTriggers = {};
         this.__stateChangedTriggers = [];
+
+        let observer = this;
+
         this.__observer = function (target, property, value) {
             if (target[property] === value) return;
             target[property] = value;
-            if (property in this.__propertyChangeTriggers) {
-                this.__propertyChangeTriggers[property].forEach(function (item) {
+            if (property in observer.__propertyChangeTriggers) {
+                observer.__propertyChangeTriggers[property].forEach(function (item) {
                     if (typeof item === 'function') {
                         try {
-                            item(this.__state, property, value, this.__props);
-                        }
-                        catch (e) {
+                            item(observer.__state, property, value, observer.__props);
+                        } catch (e) {
                             console.error('[zbind.__observer.__propertyChangeTriggers] fault callback with PropertyCahnged trigger when property "' + property + '" = "' + value + '". Message: ' + e.toString());
                         }
-                    }
-                    else {
+                    } else {
                         console.error('[zbind.__observer.__propertyChangeTriggers] ' + JSON.stringify(item) + ': is not a function');
                     }
                 });
             }
-            if (property in this.__propertyEqualsTriggers) {
-                this.__propertyEqualsTriggers[property].forEach(function (item) {
+            if (property in observer.__propertyEqualsTriggers) {
+                observer.__propertyEqualsTriggers[property].forEach(function (item) {
                     if (item.eq === value) {
                         if (typeof item.handler === 'function') {
                             try {
-                                item.handler(this.__state, property, value, this.__props);
-                            }
-                            catch (e) {
+                                item.handler(observer.__state, property, value, observer.__props);
+                            } catch (e) {
                                 console.error('[zbind.__observer.__propertyEqualsTriggers] fault callback with PropertyEqual trigger when property "' + property + '" = "' + value + '". Message: ' + e.toString());
                             }
-                        }
-                        else {
+                        } else {
                             console.error('[zbind.__observer.__propertyEqualsTriggers] ' + JSON.stringify(item.handler) + ': is not a function');
                         }
                     }
                 });
             }
-            if (this.__stateChangedTriggers && this.__stateChangedTriggers.length > 0) {
-                this.__stateChangedTriggers.forEach(function (item, i, arr) {
+            if (observer.__stateChangedTriggers && observer.__stateChangedTriggers.length > 0) {
+                observer.__stateChangedTriggers.forEach(function (item, i, arr) {
                     if (typeof item === 'function') {
                         try {
-                            item(this.__state, this.__props);
-                        }
-                        catch (e) {
+                            item(observer.__state, observer.__props);
+                        } catch (e) {
                             console.error('[zbind.__observer.__stateChangedTriggers] fault callback with SateChanged trigger when property "' + property + '" = "' + value + '". Message: ' + e.toString());
                         }
-                    }
-                    else {
+                    } else {
                         console.error('[zbind.__observer.__stateChangedTriggers] ' + JSON.stringify(item) + ': is not a function');
                     }
                 });
@@ -62,19 +65,18 @@ class Observe {
         };
         for (const p in val) {
             Object.defineProperty(this, p, {
-                get: () => this.__state[p],
-                set: (v) => this.__observer(this.__state, p, v)
+                get: () => observer.__state[p],
+                set: (v) => observer.__observer(observer.__state, p, v)
             });
         }
     }
     bind(other, otherProperty, selfProperty) {
-        if (!selfProperty && !otherProperty
-            && other && other.isObserved === true) {
+        if (!selfProperty && !otherProperty &&
+            other && other.isObserved === true) {
             for (const pn in this.__state) {
                 other.bindReverse(this, pn, pn);
             }
-        }
-        else {
+        } else {
             if (!selfProperty) {
                 selfProperty = otherProperty;
             }
@@ -99,8 +101,7 @@ class Observe {
                 }
                 other.bind(this);
             }
-        }
-        else {
+        } else {
             if (!selfProperty) {
                 selfProperty = otherProperty;
             }
@@ -111,36 +112,62 @@ class Observe {
         }
     }
     stateChanged(callback) {
-        if(typeof callback === 'function')
-        {
+        if (typeof callback === 'function') {
             this.__stateChangedTriggers.push(callback);
-        }
-        else{
+        } else {
             console.error('[zbind.__observer.stateChanged] ' + JSON.stringify(callback) + ': is not a function');
         }
     }
     propertyChanged(property, callback) {
-        if(typeof callback === 'function')
-        {
+        if (typeof callback === 'function') {
             if (!(property in this.__propertyChangeTriggers)) {
                 this.__propertyChangeTriggers[property] = [];
             }
             this.__propertyChangeTriggers[property].push(callback);
-        }
-        else{
+        } else {
             console.error('[zbind.__observer.propertyChanged] ' + JSON.stringify(callback) + ': is not a function');
         }
     }
     propertyEqual(property, value, callback) {
-        if(typeof callback === 'function')
-        {
+        if (typeof callback === 'function') {
             if (!(property in this.__propertyEqualsTriggers)) {
                 this.__propertyEqualsTriggers[property] = [];
             }
-            this.__propertyEqualsTriggers[property].push({ eq: value, handler: callback });
-        }
-        else{
+            this.__propertyEqualsTriggers[property].push({
+                eq: value,
+                handler: callback
+            });
+        } else {
             console.error('[zbind.__observer.propertyEqual] ' + JSON.stringify(callback) + ': is not a function');
         }
+    }
+}
+
+class UIBinder {
+    static BindInputTextToOjbect(item, obj, field) {
+        const typeHandler = function (e) {
+            obj[field] = e.target.value;
+        }
+        item.addEventListener('input', typeHandler) // register for oninput
+        item.addEventListener('propertychange', typeHandler) // for IE8
+    };
+
+    static BindInputTextToOjbect(item, obj, field, converter) {
+        const typeHandler = function (e) {
+            obj[field] = converter(e.target.value);
+        }
+        item.addEventListener('input', typeHandler) // register for oninput
+        item.addEventListener('propertychange', typeHandler) // for IE8
+    };
+
+    static BindObjectToElement(element, obj, field) {
+        if (!obj) return;
+        var source = obj;
+        if (obj.isObserved !== true) {
+            source = Observe.Wrap(obj);
+        }
+        source.propertyChanged(field, (s, p, v, props) => {
+            element.textContent = v;
+        });
     }
 }
