@@ -170,4 +170,91 @@ class UIBinder {
             element.textContent = v;
         });
     }
+
+    static Click(element, handler) {
+        elem.onclick = handler;
+    }
+}
+
+class Ajax {
+    static sendRequest(url, callback, fallback, data) {
+        var req = GetXHR();
+        if (!req) return;
+        var method = (data) ? "POST" : "GET";
+        if (data && typeof (data) === 'object') {
+            var y = '',
+                e = encodeURIComponent;
+            for (x in data) {
+                y += '&' + e(x) + '=' + e(data[x]);
+            }
+            data = y.slice(1) + (!cache ? '&_t=' + new Date : '');
+        }
+        req.open(method, url, true);
+        if (data)
+            req.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+        req.onreadystatechange = function () {
+            if (req.readyState != 4) return;
+            if (req.status != 200 && req.status != 304) {
+                log.error('HTTP error ' + req.status);
+                fallback(req.status);
+                return;
+            }
+            callback(req.responseText);
+        }
+        if (req.readyState == 4) return;
+        req.send(data);
+    };
+    
+    static get(url, callback) {
+        var req = GetXHR();
+        if (!req) return;
+        req.open("GET", url, true);
+        req.onreadystatechange = function () {
+            if (req.readyState != 4) return;
+            if (req.status != 200 && req.status != 304) {
+                log.error('HTTP error ' + req.status);
+                fallback(req.status);
+                return;
+            }
+            callback(req.responseText);
+        }
+        if (req.readyState == 4) return;
+        req.send(null);
+    };
+
+    static _xhr;
+
+    static GetXHR() {
+        if (!_xhr) {
+            try {
+                _xhr = new XMLHttpRequest();
+            } catch (e) {}
+        }
+        if (!_xhr) {
+            try {
+                _xhr = new ActiveXObject("Msxml3.XMLHTTP");
+            } catch (e) {}
+        }
+        if (!_xhr) {
+            try {
+                _xhr = new ActiveXObject("Msxml2.XMLHTTP.6.0");
+            } catch (e) {}
+        }
+        if (!_xhr) {
+            try {
+                _xhr = new ActiveXObject("Msxml2.XMLHTTP.3.0");
+            } catch (e) {}
+        }
+        if (!_xhr) {
+            try {
+                _xhr = new ActiveXObject("Msxml2.XMLHTTP");
+            } catch (e) {}
+        }
+        if (!_xhr) {
+            try {
+                _xhr = new ActiveXObject("Microsoft.XMLHTTP");
+            } catch (e) {}
+        }
+        return _xhr;
+    };
 }
